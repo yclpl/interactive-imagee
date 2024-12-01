@@ -87,14 +87,44 @@
         align-items: center;
     }
 </style>
+
+
+<style>
+    .image-container {
+        cursor: pointer;
+    }
+    .title-section {
+        background: linear-gradient(145deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: transform 0.3s ease;
+    }
+    .title-section:hover {
+        transform: translateY(-2px);
+    }
+    .title-icon {
+        font-size: 1.5rem;
+    }
+</style>
+
 </head>
 <body>
     <div class="container mt-5">
         <div class="image-container">
-            <!-- Resminizi buraya ekleyin -->
-            <img src="resim.jpeg" alt="İnteraktif Resim" class="img-fluid">
-            
-            <!-- Sayı noktaları buraya dinamik olarak eklenecek -->
+            <!-- Modern Başlık Tasarımı -->
+            <div class="title-section p-4 mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-image-fill title-icon text-white me-3"></i>
+                    <div>
+                        <h3 class="h4 mb-1 text-white fw-bold">Resim Başlığı</h3>
+                        <p class="mb-0 text-white-50">Görsel hakkında bilgi almak için resim üzerindeki bilgilendirme sayılarına tıklayınız.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Resim -->
+            <div class="rounded-3 overflow-hidden shadow-lg">
+                <img src="resim.jpeg" alt="İnteraktif Resim" class="img-fluid w-100">
+            </div>
         </div>
     </div>
 

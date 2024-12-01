@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnteraktif Resim Haritası</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .pdf-container {
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .viewer {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+    <style>
+        .image-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .number-point {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1.5px solid;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .number-point[data-number="1"] { border-color: #007bff; }
+        .number-point[data-number="2"] { border-color: #28a745; }
+        .number-point[data-number="3"] { border-color: #dc3545; }
+        .number-point[data-number="4"] { border-color: #ffc107; }
+        .number-point[data-number="5"] { border-color: #17a2b8; }
+        .number-point[data-number="6"] { border-color: #6610f2; }
+        .number-point[data-number="7"] { border-color: #fd7e14; }
+        .number-point[data-number="8"] { border-color: #20c997; }
+
+        .number-point[data-number="1"]:hover { background-color: #007bff; color: white; }
+        .number-point[data-number="2"]:hover { background-color: #28a745; color: white; }
+        .number-point[data-number="3"]:hover { background-color: #dc3545; color: white; }
+        .number-point[data-number="4"]:hover { background-color: #ffc107; color: black; }
+        .number-point[data-number="5"]:hover { background-color: #17a2b8; color: white; }
+        .number-point[data-number="6"]:hover { background-color: #6610f2; color: white; }
+        .number-point[data-number="7"]:hover { background-color: #fd7e14; color: white; }
+        .number-point[data-number="8"]:hover { background-color: #20c997; color: white; }
+    </style>
+
+<style>
+    /* Modal içi resim düzenlemeleri */
+    .modal-body img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        max-height: 70vh; /* Ekran yüksekliğinin %70'i kadar */
+    }
+
+    /* Modal backdrop ve animasyon */
+    .modal-backdrop.show {
+        opacity: 0.8;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal.fade .modal-dialog {
+        transform: scale(0.9);
+        transition: transform 0.2s ease-out;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+    
+    .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    /* Resim container'ı için scroll özelliği */
+    .modal-image-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        max-height: 70vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+
+
+
+
+
+<style>
+    :root {
+        --military-dark: #4A5240;
+        --military-medium: #515744;
+        --military-light: #5D6356;
+        --military-green: #4B5320;
+        --military-beige: #F4F4F0;
+    }
+
+    .image-container {
+        cursor: pointer;
+    }
+    .title-section {
+        background: linear-gradient(145deg, 
+            var(--military-dark) 0%,
+            var(--military-medium) 25%,
+            var(--military-light) 50%,
+            var(--military-green) 100%
+        );
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .title-section:hover {
+        transform: translateY(-2px);
+    }
+    .title-icon {
+        font-size: 1.5rem;
+    }
+
+    /* Modal Styles */
+    .modal-military {
+        background-color: var(--military-beige);
+    }
+    
+    .modal-military .modal-content {
+        background: linear-gradient(
+            180deg,
+            rgba(244, 244, 240, 0.98) 0%,
+            rgba(237, 237, 230, 0.98) 100%
+        );
+        border: 2px solid var(--military-dark);
+    }
+
+    .modal-military-header {
+        background: linear-gradient(145deg, 
+            var(--military-dark) 0%,
+            var(--military-green) 100%
+        );
+        padding: 1.5rem;
+        border-bottom: 2px solid var(--military-light) !important;
+    }
+
+    .modal-military-body {
+        background-color: rgba(244, 244, 240, 0.7);
+        padding: 2rem;
+    }
+
+    .modal-military-footer {
+        background-color: rgba(74, 82, 64, 0.1);
+        border-top: 1px solid var(--military-light) !important;
+        padding: 1rem;
+    }
+
+    .btn-military {
+        background-color: var(--military-dark);
+        color: #fff;
+        border: 1px solid var(--military-light);
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-military:hover {
+        background-color: var(--military-light);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .military-image-container {
+        border: 2px solid var(--military-dark);
+        padding: 3px;
+        background: var(--military-beige);
+    }
+
+    /* Modal içi elementler için stiller */
+    .military-divider {
+        border-color: var(--military-light);
+        opacity: 0.2;
+    }
+
+    .military-tag {
+        background-color: var(--military-dark);
+        color: white;
+        padding: 0.2rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+</style>
+
+</head>
+<body class="bg-light">
+    <!-- Ana İçerik -->
+    <div class="container mt-5">
+        <div class="image-container">
+            <!-- Askeri Stil Başlık -->
+            
+            <!-- Resim -->
+            <div class="military-image-container rounded-2 overflow-hidden shadow-lg">
+                <img src="resim.jpeg" alt="İnteraktif Resim" class="img-fluid w-100">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade modal-military" id="descriptionModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 90vw;">
+            <div class="modal-content shadow-lg">
+                <!-- Modal Header -->
+                <div class="modal-military-header">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-text title-icon text-white me-3"></i>
+                        <div>
+                            <h3 class="modal-title fs-4 text-white fw-light mb-1">Proje Detayları</h3>
+                            <span class="text-white-50">Teknik Özellikler ve Açıklamalar</span>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-military-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <!-- Sol Kolon - Detaylar -->
+                            <div class="col-md-8">
+                                <div class="d-flex gap-2 mb-3">
+                                    <span class="military-tag">Proje Kodu: XYZ-123</span>
+                                    <span class="military-tag">Versiyon: 1.0</span>
+                                </div>
+                                <div id="modalDescription" class="fs-5">
+                                    <!-- Modal içeriği buraya gelecek -->
+                                    <p>Proje detayları ve teknik özellikler burada listelenecek...</p>
+                                </div>
+                            </div>
+                            <!-- Sağ Kolon - Ek Bilgiler -->
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-military-footer text-center">
+                    <button type="button" class="btn btn-military" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-2"></i>
+                        Kapat
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap ve Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        // Açıklamalar için veri
+        const descriptions = {
+            1: "<img src=\"QR 1\\1.PİST YAKLAŞMA IŞIKLARI\\29.Yaklaşma kategorileri_annex 6.jpg\"> <br><br> <img src=\"QR 1\\1.PİST YAKLAŞMA IŞIKLARI\\30.300 m yaklaşma ışıkları standartlar_Annex 14 Şekil 5.14.jpg\"> <br><br> <img src=\"QR 1\\1.PİST YAKLAŞMA IŞIKLARI\\30.300 m yaklaşma ışıkları standartlar_Annex 14 Şekil 5.14.jpg\">",
+            2: ``,
+            3: `<div class="pdf-container"><object data="QR 1/2.PİST/Big Data.pdf" type="application/pdf" class="viewer"></object></div>`,
+            4: `<embed src="/QR 1/2.PİST/Big Data.pdf" type="application/pdf" class="viewer">`,
+            5: "İkinci nokta açıklaması",
+            6: "İkinci nokta açıklaması"
+            // ... 24'e kadar devam eden açıklamalar
+            
+        };
+
+        const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2', '#fd7e14', '#20c997'];
+
+        // Renklere ait CSS kuralları oluştur
+        const styleSheet = document.createElement("style");
+        colors.forEach((color, index) => {
+            styleSheet.textContent += `
+                .number-point[data-color="${index}"] {
+                    border-color: ${color};
+                }
+                .number-point[data-color="${index}"]:hover {
+                    background-color: ${color};
+                    color: ${color === '#ffc107' ? 'black' : 'white'};
+                }
+            `;
+        });
+        document.head.appendChild(styleSheet);
+
+
+
+        const points = [
+    { number: 1, top: "63.50%", left: "4.99%" },
+    { number: 1, top: "70.23%", left: "21.52%" },
+    { number: 1, top: "78.46%", left: "42.69%" },
+    { number: 2, top: "53.66%", left: "60.79%" },
+    { number: 2, top: "61.89%", left: "68.63%" },
+    { number: 3, top: "65.95%", left: "82.45%" },
+    { number: 3, top: "68.84%", left: "96.63%" },
+    { number: 4, top: "47.50%", left: "61.36%" },
+    { number: 4, top: "46.21%", left: "60.86%" }
+];
+
+
+
+        // Noktaları oluştur
+        const imageContainer = document.querySelector('.image-container');
+        points.forEach(point => {
+            const div = document.createElement('div');
+            div.className = 'number-point';
+            div.textContent = point.number;
+            div.style.top = point.top;
+            div.style.left = point.left;
+            div.setAttribute('data-number', point.number);
+            // Renk indeksini hesapla (8'den sonra başa sar)
+            const colorIndex = (point.number - 1) % colors.length;
+            div.setAttribute('data-color', colorIndex);
+            
+            div.addEventListener('click', () => showDescription(point.number));
+            imageContainer.appendChild(div);
+        });
+
+        // Modal işlemleri
+        const modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+        const modalDescription = document.getElementById('modalDescription');
+
+        function showDescription(number) {
+            modalDescription.innerHTML = descriptions[number];
+            const modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+            modal.show();
+        }
+    </script>
+</body>
+</html>

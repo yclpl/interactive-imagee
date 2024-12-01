@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnteraktif Resim Haritası</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .image-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .number-point {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1.5px solid;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .number-point[data-number="1"] { border-color: #007bff; }
+        .number-point[data-number="2"] { border-color: #28a745; }
+        .number-point[data-number="3"] { border-color: #dc3545; }
+        .number-point[data-number="4"] { border-color: #ffc107; }
+        .number-point[data-number="5"] { border-color: #17a2b8; }
+        .number-point[data-number="6"] { border-color: #6610f2; }
+        .number-point[data-number="7"] { border-color: #fd7e14; }
+        .number-point[data-number="8"] { border-color: #20c997; }
+
+        .number-point[data-number="1"]:hover { background-color: #007bff; color: white; }
+        .number-point[data-number="2"]:hover { background-color: #28a745; color: white; }
+        .number-point[data-number="3"]:hover { background-color: #dc3545; color: white; }
+        .number-point[data-number="4"]:hover { background-color: #ffc107; color: black; }
+        .number-point[data-number="5"]:hover { background-color: #17a2b8; color: white; }
+        .number-point[data-number="6"]:hover { background-color: #6610f2; color: white; }
+        .number-point[data-number="7"]:hover { background-color: #fd7e14; color: white; }
+        .number-point[data-number="8"]:hover { background-color: #20c997; color: white; }
+    </style>
+
+<style>
+    /* Modal içi resim düzenlemeleri */
+    .modal-body img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        max-height: 70vh; /* Ekran yüksekliğinin %70'i kadar */
+    }
+
+    /* Modal backdrop ve animasyon */
+    .modal-backdrop.show {
+        opacity: 0.8;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal.fade .modal-dialog {
+        transform: scale(0.9);
+        transition: transform 0.2s ease-out;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+    
+    .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    /* Resim container'ı için scroll özelliği */
+    .modal-image-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        max-height: 70vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="image-container">
+            <!-- Resminizi buraya ekleyin -->
+            <img src="resim.jpeg" alt="İnteraktif Resim" class="img-fluid">
+            
+            <!-- Sayı noktaları buraya dinamik olarak eklenecek -->
+        </div>
+    </div>
+
+    <!-- Bootstrap Modal -->
+    <div class="modal fade" id="descriptionModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 90vw;">
+            <div class="modal-content border-0 shadow-lg" style="background: rgba(255, 255, 255, 0.95);">
+                <div class="modal-header border-0 bg-primary bg-gradient">
+                    <h3 class="modal-title fs-4 text-white fw-light">Detaylı Açıklama</h3>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body p-4 p-md-5">
+                    <div class="container-fluid">
+                        <div class="row justify-content-center">
+                            <div class="col-12">
+                                <div id="modalDescription" class="fs-5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-lg btn-outline-primary px-5 rounded-pill" data-bs-dismiss="modal">
+                        <span class="fw-light">Kapat</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Bootstrap ve Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        // Açıklamalar için veri
+        const descriptions = {
+            1: "İkinci nokta açıklaması. İkinci nokta açıklaması. vv İkinci nokta açıklaması. İkinci nokta açıklaması.v ",
+            2: "İkinci nokta açıklaması. İkinci nokta açıklaması. vv İkinci nokta açıklaması. İkinci nokta açıklaması.v <img src=\"resim.jpeg\">",
+            3: "İkinci nokta açıklaması",
+            4: "İkinci nokta açıklaması",
+            5: "İkinci nokta açıklaması",
+            6: "İkinci nokta açıklaması"
+            // ... 24'e kadar devam eden açıklamalar
+            
+        };
+
+        const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2', '#fd7e14', '#20c997'];
+
+        // Renklere ait CSS kuralları oluştur
+        const styleSheet = document.createElement("style");
+        colors.forEach((color, index) => {
+            styleSheet.textContent += `
+                .number-point[data-color="${index}"] {
+                    border-color: ${color};
+                }
+                .number-point[data-color="${index}"]:hover {
+                    background-color: ${color};
+                    color: ${color === '#ffc107' ? 'black' : 'white'};
+                }
+            `;
+        });
+        document.head.appendChild(styleSheet);
+
+
+
+        // Nokta konumları (resme göre ayarlanmalı)
+        const points = [
+    { number: 1, top: "54.52%", left: "5.70%" },
+    { number: 1, top: "84.23%", left: "96.13%" },
+    { number: 2, top: "57.72%", left: "34.85%" },
+    { number: 2, top: "59.11%", left: "29.72%" },
+    { number: 2, top: "61.79%", left: "26.94%" },
+    { number: 3, top: "67.45%", left: "47.39%" },
+    { number: 4, top: "71.83%", left: "55.44%" },
+    { number: 5, top: "63.50%", left: "58.15%" },
+    { number: 5, top: "78.89%", left: "27.22%" },
+    { number: 6, top: "75.25%", left: "37.27%" },
+    { number: 7, top: "82.95%", left: "52.31%" },
+    { number: 8, top: "74.18%", left: "72.19%" },
+    { number: 8, top: "77.39%", left: "80.81%" },
+    { number: 9, top: "64.35%", left: "6.70%" },
+    { number: 10, top: "85.20%", left: "61.86%" },
+    { number: 10, top: "77.50%", left: "48.96%" }
+];
+
+
+
+        // Noktaları oluştur
+        const imageContainer = document.querySelector('.image-container');
+        points.forEach(point => {
+            const div = document.createElement('div');
+            div.className = 'number-point';
+            div.textContent = point.number;
+            div.style.top = point.top;
+            div.style.left = point.left;
+            div.setAttribute('data-number', point.number);
+            // Renk indeksini hesapla (8'den sonra başa sar)
+            const colorIndex = (point.number - 1) % colors.length;
+            div.setAttribute('data-color', colorIndex);
+            
+            div.addEventListener('click', () => showDescription(point.number));
+            imageContainer.appendChild(div);
+        });
+
+        // Modal işlemleri
+        const modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+        const modalDescription = document.getElementById('modalDescription');
+
+        function showDescription(number) {
+            modalDescription.innerHTML = descriptions[number];
+            const modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+            modal.show();
+        }
+    </script>
+</body>
+</html>
+
+
+

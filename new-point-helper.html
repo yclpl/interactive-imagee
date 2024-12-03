@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelişmiş Nokta Konumu Belirleme Aracı</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .image-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .number-point {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #007bff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #coordinates {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        #pointsPanel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+            min-width: 300px;
+        }
+
+        .point-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+
+        .color-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="image-container">
+                    <img src="meydan.png" alt="Hedef Resim" class="img-fluid" id="targetImage">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="coordinates">X: 0%, Y: 0%</div>
+
+    <div id="pointsPanel">
+        <h4 class="mb-4">Nokta İşaretleme Paneli</h4>
+        
+        <!-- Yeni nokta grubu ekleme formu -->
+        <div class="mb-4">
+            <div class="input-group mb-3">
+                <input type="number" class="form-control" id="pointNumber" placeholder="Nokta Numarası" min="1">
+                <input type="number" class="form-control" id="pointCount" placeholder="Kaç Adet" min="1">
+                <button class="btn btn-primary" onclick="addNewPointGroup()">Ekle</button>
+            </div>
+        </div>
+
+        <!-- Nokta grupları listesi -->
+        <div id="pointGroupsList">
+            <!-- Gruplar buraya dinamik olarak eklenecek -->
+        </div>
+
+        <hr>
+        <div class="d-grid gap-2">
+            <button class="btn btn-primary" onclick="generateCode()">Kodu Oluştur</button>
+            <button class="btn btn-danger" onclick="clearAll()">Tümünü Temizle</button>
+        </div>
+
+        <!-- Kod çıktısı -->
+        <div class="mt-4">
+            <h5>Oluşturulan Kod:</h5>
+            <pre id="generatedCode" class="bg-light p-3 rounded" style="max-height: 200px; overflow-y: auto;"></pre>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let pointGroups = new Map(); // {number: {count: X, placed: Y, points: []}}
+        let colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2', '#fd7e14', '#20c997'];
+
+        // Resim yükleme
+        window.onload = function() {
+            const imageInput = prompt("Lütfen resim URL'sini girin:");
+            if (imageInput) {
+                document.getElementById('targetImage').src = imageInput;
+            }
+        };
+
+        // Mouse koordinatları
+        document.querySelector('.image-container').addEventListener('mousemove', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
+            const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
+            document.getElementById('coordinates').textContent = `X: ${x}%, Y: ${y}%`;
+        });
+
+        function addNewPointGroup() {
+            const number = parseInt(document.getElementById('pointNumber').value);
+            const count = parseInt(document.getElementById('pointCount').value);
+
+            if (!number || !count) {
+                alert('Lütfen nokta numarası ve adet giriniz!');
+                return;
+            }
+
+            if (pointGroups.has(number)) {
+                alert('Bu numara zaten mevcut!');
+                return;
+            }
+
+            pointGroups.set(number, {
+                count: count,
+                placed: 0,
+                points: [],
+                color: colors[number % colors.length]
+            });
+
+            updatePointGroupsList();
+        }
+
+        document.querySelector('.image-container').addEventListener('click', function(e) {
+            const activeGroup = [...pointGroups.entries()].find(([_, group]) => group.placed < group.count);
+            
+            if (!activeGroup) {
+                alert('Tüm noktalar yerleştirildi veya yeni grup eklenmedi!');
+                return;
+            }
+
+            const [number, group] = activeGroup;
+            const rect = this.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
+            const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
+
+            // Nokta oluştur
+            const point = { number, x: `${x}%`, y: `${y}%` };
+            group.points.push(point);
+            group.placed++;
+
+            // Görsel nokta ekle
+            const div = document.createElement('div');
+            div.className = 'number-point';
+            div.textContent = number;
+            div.style.left = `${x}%`;
+            div.style.top = `${y}%`;
+            div.style.borderColor = group.color;
+            this.appendChild(div);
+
+            updatePointGroupsList();
+        });
+
+        function updatePointGroupsList() {
+            const container = document.getElementById('pointGroupsList');
+            container.innerHTML = '';
+
+            pointGroups.forEach((group, number) => {
+                const div = document.createElement('div');
+                div.className = 'point-group';
+                div.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="color-indicator" style="background-color: ${group.color}"></span>
+                            <strong>Nokta ${number}</strong>
+                        </div>
+                        <div>
+                            ${group.placed}/${group.count} yerleştirildi
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function generateCode() {
+            let pointsArray = [];
+            pointGroups.forEach((group, number) => {
+                group.points.forEach((point, index) => {
+                    pointsArray.push(`    { number: ${number}, top: "${point.y}", left: "${point.x}" }`);
+                });
+            });
+
+            const code = `const points = [\n${pointsArray.join(',\n')}\n];`;
+            document.getElementById('generatedCode').textContent = code;
+        }
+
+        function clearAll() {
+            if (confirm('Tüm noktaları temizlemek istediğinizden emin misiniz?')) {
+                pointGroups.clear();
+                document.querySelectorAll('.number-point').forEach(el => el.remove());
+                updatePointGroupsList();
+                document.getElementById('generatedCode').textContent = '';
+            }
+        }
+    </script>
+</body>
+</html>
